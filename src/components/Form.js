@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import axios from "axios";
 
 const Login_Url = "https://interview_fontend_web.shutokou.cc/login";
-const Data_Url="https://interview_fontend_web.shutokou.cc/get_data";
+const Data_Url= "https://interview_fontend_web.shutokou.cc/get_data";
 
 
 export default function Form() {
@@ -15,7 +15,7 @@ export default function Form() {
     formState: { errors },
   } = useForm();
   // const onSubmit = (data) => console.log(data);
-  const onSubmit = async function Login(data){
+  const onSubmit = async function (data){
     try {
       const LoginResponse = await axios.post(Login_Url,{
         user:data.user,
@@ -27,18 +27,27 @@ export default function Form() {
         }
       });
       if (LoginResponse.data && LoginResponse.data.uuid && LoginResponse.data.token){
-        console.log("uuid :", LoginResponse.data.uuid);
-        console.log("token :", LoginResponse.data.token);
+        // console.log("uuid :", LoginResponse.data.uuid);
+        // console.log("token :", LoginResponse.data.token);
 
-        const DataResponse = await axios.post(`${Data_Url}?user=${data.user}&uuid=${LoginResponse.data.uuid}&token=${LoginResponse.data.token}`,
-        {
-          file:data.file[0],
-        },
+      const formData = new FormData();
+      formData.append("user", data.user);
+      formData.append("uuid", LoginResponse.data.uuid);
+      formData.append("token", LoginResponse.data.token);
+      formData.append("file", data.file[0]);
+
+      const DataResponse = await axios.post(
+        `${Data_Url}?user=${data.user}&uuid=${LoginResponse.data.uuid}&token=${LoginResponse.data.token}`,
+        formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
+            "uuid": LoginResponse.data.uuid,
+            "token": LoginResponse.data.token,
           },
-        });
+        }
+      );
+
         // console.log(DataResponse.data)
         // console.log(errors.DataResponse.data);
       } else {
@@ -76,8 +85,10 @@ export default function Form() {
               "Password must be at least 8 characters"}
             <input
               type="file"
+              id="fileupload"
               {...register("file", { required: true })}
             />
+            <label htmlFor="fileupload">Select a file!</label>
             {errors.file && "File is required"}
             <button className="btn">Sign in</button>
           </form>
